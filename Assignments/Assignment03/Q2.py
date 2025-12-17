@@ -7,8 +7,8 @@ def Weather():
     city = st.selectbox("City", ["Pune", "Sangli", "Ashta"])
 
     load_dotenv()
-    api_key = os.getenv("api_key")
-
+    #api_key = os.getenv("api_key")
+    api_key=0
     if not api_key:
         st.error("API key not found")
         return
@@ -23,7 +23,7 @@ def Weather():
         st.write(f"Wind speed : {weather['wind']['speed']} m/s")
     else:
         st.error(weather.get("message", "Error fetching weather"))
-
+#main
 
 if "login" not in st.session_state:
     st.session_state.login = False
