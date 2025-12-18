@@ -12,20 +12,21 @@ headers = {
     "Content-Type": "application/json"
 }
 
-while True:
-    user_prompt = input("Ask anything: ")
-    if user_prompt == "exit":
-        break
-    req_data = {
-        "model": "microsoft/phi-4-mini-reasoning",
+
+#while True:
+user_prompt = input("Ask anything: ")
+if user_prompt == "exit":
+        pass
+req_data = {
+        "model": "google/gemma-3n-e4b",
         "messages": [
             { "role": "user", "content": user_prompt }
         ],
     }
-    time1 = time.perf_counter()
-    response = requests.post(url, data=json.dumps(req_data), headers=headers)
-    time2 = time.perf_counter()
-    print("Status:", response.status_code)
-    resp = response.json()
-    print(resp["choices"][0]["message"]["content"])
-    print(f"Time required: {time2-time1:.2f} sec")
+time1 = time.perf_counter()
+response = requests.post(url, data=json.dumps(req_data), headers=headers)
+time2 = time.perf_counter()
+print("Status:", response.status_code)
+resp = response.json()
+print(resp["choices"][0]["message"]["content"])
+print(f"Time required: {time2-time1:.2f} sec")

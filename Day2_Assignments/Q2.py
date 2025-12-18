@@ -1,44 +1,47 @@
 import requests
 import os
 from dotenv import load_dotenv
-import pandasql as ps
 import streamlit as st
 
 def weather_app():
-    city = st.selectbox("Choose the city", ["Pune", "Mumbai", "Nashik", "Ashta"])
+    st.header(" Weather Information")
+
+    city = st.selectbox(
+        "Choose the city",
+        ["Pune", "Mumbai", "Nashik", "Ashta"]
+    )
 
     load_dotenv()
     api_key = os.getenv("api_key")
+
+    if not api_key:
+        st.error("API key not found. Check your .env file.")
+        return
 
     url = f"https://api.openweathermap.org/data/2.5/weather?appid={api_key}&units=metric&q={city}"
     response = requests.get(url)
     weather = response.json()
 
-    # Debug (optional)
-    # st.write(weather)
-
     if response.status_code == 200:
-        st.write(f"Temperature is : {weather['main']['temp']} °C")
-        st.write(f"Humidity is : {weather['main']['humidity']} %")
-        st.write(f"Wind speed is : {weather['wind']['speed']} m/s")
+        st.success(f"Weather in {city}")
+        st.write(f" Temperature: {weather['main']['temp']} °C")
+        st.write(f" Humidity: {weather['main']['humidity']} %")
+        st.write(f" Wind Speed: {weather['wind']['speed']} m/s")
     else:
         st.error(weather.get("message", "Something went wrong"))
 
 
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-#detalis
-if "page" not in st.session_state:
-    st.session_state.page = False
-st.title("Wheather Detection App!")
-st.subheader("Login to enter the app ....")
-username = st.text_input("Username")
-password =st.text_input("Password",type='password')
-if st.button("login"):
+
+st.title("Login Page")
+
+username = st.text_input("Username", key="username")
+password = st.text_input("Password", type="password", key="password")
+
+if st.button("Login", key="login_btn"):
     if username == password:
-        st.session_state.page = True
-        st.rerun
-if  st.button("login"):
-    weather_app()
-
-
-
+        st.success("Login successful ")
+    else:
+        st.error("Invalid credentials ")
