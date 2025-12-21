@@ -91,4 +91,4 @@ while True:
     result = agent.invoke({"messages":conversation})
     ai_msg = result["messages"][-1]
     print("Ai : ",ai_msg.content)
-    conversation = result["messages"]
+    conversation = result["messages"]       
