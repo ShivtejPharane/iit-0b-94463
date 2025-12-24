@@ -47,12 +47,14 @@ def file_reader(path):
 
 @tool
 def calculator(expression):
-    """
-    This calculator function solves any arithmetic expression containing all constant values.
-    It supports basic arithmetic operators +, -, *, /, and parenthesis. 
     
-    :param expression: str input arithmetic expression
-    :returns expression result as str
+    """
+    This get_weather() function gets the current weather of given city.
+    If weather cannot be found, it returns 'Error'.
+    This function doesn't return historic or general weather of the city.
+
+    :param city: str input - city name
+    :returns current weather in json format or 'Error'    
     """
     try:
         result = eval(expression)
@@ -62,14 +64,7 @@ def calculator(expression):
 
 @tool
 def get_weather(city):
-    """
-    This get_weather() function gets the current weather of given city.
-    If weather cannot be found, it returns 'Error'.
-    This function doesn't return historic or general weather of the city.
-
-    :param city: str input - city name
-    :returns current weather in json format or 'Error'    
-    """
+    
     try:
         api_key = os.getenv("OPENWEATHER_API_KEY")
         url = f"https://api.openweathermap.org/data/2.5/weather?appid={api_key}&units=metric&q={city}"

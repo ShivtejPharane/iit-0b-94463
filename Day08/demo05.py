@@ -1,0 +1,47 @@
+import faiss
+from langchain_text_splitters import CharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from langchain.embeddings import init_embeddings
+#text_splitter= CharacterTextSplitter(chunk_size=500, chunk_overlap=50,separator="\n\n")
+text_splitter = RecursiveCharacterTextSplitter(chunk_size = 200,chunk_overlap = 50,separators=[" ","\n","\n\n"])
+raw_text = """Cricket is a bat-and-ball game that is played between two teams of eleven players on a field, at the centre of which is a 22-yard (20-metre; 66-foot) pitch with a wicket at each end, each comprising two bails (small sticks) balanced on three stumps. Two players from the batting team, the striker and nonstriker, stand in front of either wicket holding bats, while one player from the fielding team, the bowler, bowls the ball toward the striker's wicket from the opposite end of the pitch. The striker's goal is to hit the bowled ball with the bat and then switch places with the nonstriker, with the batting team scoring one run for each of these swaps. Runs are also scored when the ball reaches the boundary of the field or when the ball is bowled illegally.
+
+The fielding team aims to prevent runs by dismissing batters (so they are "out"). Dismissal can occur in various ways, including being bowled (when the ball hits the striker's wicket and dislodges the bails), and by the fielding side either catching the ball after it is hit by the bat but before it hits the ground, or hitting a wicket with the ball before a batter can cross the crease line in front of the wicket. When ten batters have been dismissed, the innings (playing phase) ends and the teams swap roles. Forms of cricket range from traditional Test matches played over five days to the newer Twenty20 format (also known as T20), in which each team bats for a single innings of 20 overs (each "over" being a set of 6 fair opportunities for the batting team to score) and the game generally lasts three to four hours.
+
+Traditionally, cricketers play in all-white kit, but in limited overs cricket, they wear club or team colours. In addition to the basic kit, some players wear protective gear to prevent injury caused by the ball, which is a hard, solid spheroid made of compressed leather with a slightly raised sewn seam enclosing a cork core layered with tightly wound string.
+
+The earliest known definite reference to cricket is to it being played in South East England in the mid-16th century. It spread globally with the expansion of the British Empire, with the first international matches in the second half of the 19th century. The game's governing body is the International Cricket Council (ICC), which has over 100 members, twelve of which are full members who play Test matches. The game's rules, the Laws of Cricket, are maintained by Marylebone Cricket Club (MCC) in London. The sport is primarily played in India, Pakistan, Bangladesh, Sri Lanka, Afghanistan, Australia, New Zealand, England and Wales, South Africa and the West Indies.[2]
+
+While cricket has traditionally been played largely by men, women's cricket has experienced significant growth in the 21st century.[3]
+
+The most successful side playing international cricket is Australia, which has won eight One Day International trophies, including six World Cups, more than any other country, and has been the top-rated Test side more than any other country.[4][5]"""
+
+docs = text_splitter.create_documents([raw_text])
+
+embed_model = init_embeddings(
+    model="text-embedding-nomic-embed-text-v1.5",
+    provider="openai",
+    base_url = "http://127.0.0.1:1234/v1",
+    api_key = "dummy",
+    check_embedding_ctx_length = False
+)
+vectorstore = FAISS.from_texts(
+    texts = [doc.page_content for doc in docs] ,
+    embedding=embed_model,
+    metadatas=[{"source":"example.txt","chunk_id": i} for i in range(len(docs))]
+)
+
+vectorstore.save_local("faiss_index")
+vectorstore = FAISS.load_local(
+    "faiss_index",
+    embed_model,
+    allow_dangerous_deserialization=True
+)
+query = "How are runs scored in cricket?"
+
+results= vectorstore.similarity_search(
+    query,k=2
+)
+for doc in results:
+    print(doc.metadata,"->",doc.page_content)
