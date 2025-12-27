@@ -15,4 +15,4 @@ While cricket has traditionally been played largely by men, women's cricket has 
 The most successful side playing international cricket is Australia, which has won eight One Day International trophies, including six World Cups, more than any other country, and has been the top-rated Test side more than any other country.[4][5]"""
 
 docs = text_splitter.create_documents([raw_text])
-print(docs[0])
+print(docs[0])  

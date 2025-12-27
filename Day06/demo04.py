@@ -69,7 +69,7 @@ def calculator(expressaion):
 llm = init_chat_model(
     model = "google/gemma-3-4b",
     model_provider="openai",
-    base_url = "http://192.168.1.109:1234/v1",
+    base_url = "http://127.0.0.1:1234/v1",
     api_key = "dummy",
     timeout=600,
     max_tokens=128,
