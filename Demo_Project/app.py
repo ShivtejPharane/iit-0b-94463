@@ -22,20 +22,8 @@ loader = DirectoryLoader(
      loader_cls=PyPDFLoader
     )
 documents = loader.load()
+pages = loader.load()
 docs = documents
-
-def add_new_resumes(folder_path):
-    loader = DirectoryLoader(
-        path=folder_path,
-        glob="**/*.pdf",
-        loader_cls=PyPDFLoader
-    )
-    new_docs = loader.load()
-
-    vector_store.add_documents(new_docs)
-    vector_store.save_local(FAISS_DB_PATH)
-
-    print("✅ New resumes added successfully")
 
     
 llm = init_chat_model(
