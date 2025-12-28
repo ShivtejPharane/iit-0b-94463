@@ -1,7 +1,7 @@
 from langchain.chat_models import init_chat_model
 from langchain.agents import create_agent
 from langchain.tools import tool
-
+from bs4 import BeautifulSoup
 # from dotenv import load_dotenv
 import pandasql as ps
 import pandas as pd
