@@ -1,11 +1,6 @@
-from langchain_openai import OpenAI
 from langchain_community.document_loaders import PyPDFLoader,DirectoryLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_core.vectorstores import VectorStoreRetriever
 from langchain.embeddings import init_embeddings
-from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 from langchain.chat_models import init_chat_model
 import os
 from langchain.agents import create_agent
@@ -15,6 +10,20 @@ from langchain_classic.chains.question_answering import load_qa_chain
 PDF_PATH = r"E:\Internship\Git_hub_repo\iit-0b-94463\Day08\Resumes"
 FAISS_DB_PATH = "faiss_resume_db"
 
+
+def add_new_resumes(folder_path):
+    loader = DirectoryLoader(
+        path=folder_path,
+        glob="**/*.pdf",
+        loader_cls=PyPDFLoader
+    )
+    new_docs = loader.load()
+
+    vector_store.add_documents(new_docs)
+    vector_store.save_local(FAISS_DB_PATH)
+
+    print("New resumes added successfully")
+ 
 
 loader = DirectoryLoader(
      path="E:\Internship\Git_hub_repo\iit-0b-94463\Day08\Resumes",
@@ -80,4 +89,5 @@ answer = agent.invoke({
     ]
 })
 print(answer["messages"][-1].content)
+
 
