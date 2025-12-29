@@ -1,32 +1,22 @@
 from langchain.chat_models import init_chat_model
 from langchain.agents import create_agent
 from langchain.tools import tool
-from bs4 import BeautifulSoup
-# from dotenv import load_dotenv
-import pandasql as ps
 import pandas as pd
-import requests
-import os
-
-# load_dotenv()
-
-llm = init_chat_model(
-    model="google/gemma-3-4b",
-    model_provider="openai",
-    base_url="http://127.0.0.1:1234/v1",
-    api_key="not-needed"
-)
-
+import pandasql as ps
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import streamlit as st 
+import time
 @tool
-def csv_auto_sql_tool(file_path: str, question: str) -> str:
+def csv_query_tool(question: str) -> str:
     """
     Automatically generate SQL from user question using LLM
     and execute it on CSV using pandasql.
     """
-    file_path = "C:/GenAi_internship/Sunbeam_assignments/iit-genai-94565/Assigment09/emp_hdr.csv"
+    file_path = "E:\Internship\Git_hub_repo\iit-0b-94463\Assignments\Assignment09\emp_hdr.csv"
 
     df = pd.read_csv(file_path)
-    schema = df.dtypes.to_string() #Converts the output into a single formatted string instead of a pandas object
+    schema = df.dtypes.to_string() 
 
     sql_prompt = f"""
 You are an expert SQLite developer.
@@ -55,86 +45,92 @@ Question:
         return f"SQL ERROR:\n{e}\n\nSQL:\n{sql_query}"
 
     return f"""
-Generated SQL:
-{sql_query}
+        Generated SQL:
+        {sql_query}
+        Result:
+        {result}"""
 
-Result:
-{result}
-"""
 
 @tool
-def sunbeam_web_tool(question: str) -> str:
+def internship_tool(user_input):
     """
     Scrape Sunbeam website and answer user question
     based on scraped content.
     """
+    url = "https://sunbeaminfo.in/internship"
+    driver = webdriver.Chrome()
+    driver.get(url)
+    time.sleep(3)
 
-    url = "https://www.sunbeaminfo.com"
-    response = requests.get(url, timeout=10)
+    internship_data = []
+    rows = driver.find_elements(By.XPATH, '//div//table//tbody//tr')
+    for row in rows:
+        cols = row.find_elements(By.XPATH, './/td')
+        if len(cols) >= 7:
+            internship_data.append({
+                "Batch": cols[1].text.strip(),
+                "Batch_Duration": cols[2].text.strip(),
+                "Start_Date": cols[3].text.strip(),
+                "End_Date": cols[4].text.strip(),
+                "Time": cols[5].text.strip(),
+                "Fees_INR": cols[6].text.strip()
+            })
+    driver.quit()
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    df = pd.DataFrame(internship_data)
 
-    for tag in soup(["script", "style", "noscript"]):
-        tag.decompose()
-
-    text = soup.get_text(separator=" ")
-    text = " ".join(text.split())
-
-    question_lower = question.lower()
-
-    relevant = [
-        s for s in text.split(".")
-        if any(w in s.lower() for w in question_lower.split())
-    ]
-
-    if not relevant:
-        return "No relevant information found on Sunbeam website."
-
-    context = ". ".join(relevant[:8])
-
+    # LLM prompt to answer question based on DataFrame
+    context = df.to_string(index=False)
     prompt = f"""
-Answer the question using ONLY the context below.
+    You are an AI assistant.
+    Answer the user's question strictly using the internship data below.
+    Do not make assumptions outside the data.
 
-Context:
-{context}
+    Internship Data:
+    {context}
 
-Question:
-{question}
+    Question:
+    {user_input}
 
-Answer in simple English.
-"""
+    Explain the answer in simple English.
+    """
 
     response = llm.invoke(prompt)
     return response.content
 
 
+llm = init_chat_model(
+    model="google/gemma-3n-e4b",
+    model_provider="openai",
+    base_url="http://127.0.0.1:1234/v1",
+    api_key="non-needed"
+)
+
 agent = create_agent(
     model=llm,
-    tools=[csv_auto_sql_tool, sunbeam_web_tool],
+    tools=[csv_query_tool, internship_tool],
     system_prompt="""
-You are an intelligent assistant.
-- Use CSV tool for CSV questions
-- Use Web tool for Sunbeam questions
-- Answer briefly and clearly
-"""
+    You are an intelligent assistant.
+    - Use CSV tool for CSV questions
+    - Use Web tool for Sunbeam questions
+    - Answer briefly and clearly
+    """
 )
 
 
-chat_history = []
+with st.sidebar:
+    option = st.selectbox("Select Mode", ["CSV-QNA", "Scraping"])
 
-print("\n=== Intelligent Agent Started ===")
-print("Type 'exit' to quit\n")
+st.title("Chat Bot")
+st.write("Best for CSV-QNA and Data Scraping")
+if option == "CSV_QNA":
+    path = st.chat_input("paste the file path")
+conversation = []
 
-while True:
-    user_input = input("YOU: ")
-    if user_input.lower() == "exit":
-        break
+user_input = st.chat_input("Enter your question")
 
-    chat_history.append({"role": "user", "content": user_input})
-
-    result = agent.invoke({"messages": chat_history})
-
-    chat_history.extend(result["messages"])
-
-    print("\nAI:", result["messages"][-1].content)
-    print("-" * 50)
+if user_input:
+    conversation.append({"role": "user", "content": user_input})
+    result = agent.invoke({"messages": conversation})
+    llm_output = result["messages"][-1]
+    st.write("AI:", llm_output.content)
