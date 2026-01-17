@@ -33,8 +33,12 @@ loader = DirectoryLoader(
 documents = loader.load()
 pages = loader.load()
 docs = documents
+file_name = os.path.splitext(os.path.basename(PDF_PATH))[0]
 
-    
+for i,doc in enumerate(docs):
+    doc.metadata["doc_id"] = f"{os.path.basename(doc.metadata['source'])}_{i}"
+    print(doc.metadata["doc_id"])
+
 llm = init_chat_model(
     model="google/gemma-3n-e4b",
     model_provider="openai",
@@ -64,7 +68,6 @@ else:
     vector_store = FAISS.from_documents(documents, embed_model)
     vector_store.save_local(FAISS_DB_PATH)
     print("FAISS database saved locally")
-
 
 q = input("Enter the Query : ")
 results_query = vector_store.similarity_search(q, k=5)

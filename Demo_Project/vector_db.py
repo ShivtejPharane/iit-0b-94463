@@ -15,7 +15,7 @@ def add_new_resumes(folder_path):
     vector_store.add_documents(new_docs)
     vector_store.save_local(FAISS_DB_PATH)
 
-    print("✅ New resumes added successfully")
+    print("New resumes added successfully")
 
 
 
